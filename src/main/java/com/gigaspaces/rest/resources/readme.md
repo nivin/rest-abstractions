@@ -18,3 +18,10 @@ Once the PU has been undeployed, you can remove the resource using `DELETE /depl
 ### List resources
 
 For visibility and debugging, the API allows you to list the uploaded resources using `GET /deployments/resources`, which will be implemented using `DeploymentResourceManager.getResourcesNames()`
+
+## Default Implementation
+
+The default implementation is `SimpleDeploymentResourceManager`, which stores all resources within the local file system. This is valid for a single manager, but for a cluster of manager it's not enough (since each rest operation may be executed using a different server, it's possible the resource will be uploaded to one manager and the deploy routed to another, which will fail). We'll deal with this later, using a different impl of  `DeploymentResourceManager` or other techniques - for now we're focusing on rapid development.
+
+See `ResourcesDemo` for example of how to use this.
+
