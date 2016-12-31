@@ -6,15 +6,15 @@ import com.gigaspaces.rest.requests.RequestsManager;
 
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class SimpleRequestsManager extends RequestsManager {
     private final AtomicLong idGenerator = new AtomicLong(0);
-    private final Map<Long, Request> requestsMap = new ConcurrentHashMap<Long, Request>();
+    private final ConcurrentMap<Long, Request> requestsMap = new ConcurrentHashMap<Long, Request>();
     private final BlockingQueue<Request> requestQueue;
     private final Thread consumerThread = new Thread(new Consumer(), "GS-RequestsConsumer");
 
@@ -56,7 +56,11 @@ public class SimpleRequestsManager extends RequestsManager {
             while (true) {
                 try {
                     final Request request = requestQueue.take();
-                    request.process();
+                    try {
+                        request.process();
+                    } catch (Exception e) {
+                        // TODO: Log request processing failure.
+                    }
                     request.setStatus(RequestStatus.COMPLETED);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();

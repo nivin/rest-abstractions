@@ -11,6 +11,7 @@ import java.util.Iterator;
 
 public class SimpleDeploymentResourceManager extends DeploymentResourceManager {
     private final File location;
+    private final Object lock = new Object();
 
     public SimpleDeploymentResourceManager(File location) {
         this.location = location;
@@ -18,18 +19,22 @@ public class SimpleDeploymentResourceManager extends DeploymentResourceManager {
 
     @Override
     public void add(String name, File resource) throws IOException {
-        File resourceLocation = new File(location, name);
-        if (resourceLocation.exists())
-            throw new IOException("Resource already exists - " + name);
-        resourceLocation.mkdir();
-        if (!resourceLocation.exists())
-            throw new IOException("Resource could not be created - " + name);
-        FileUtils.copyFile(resource, new File(resourceLocation, resource.getName()));
+        synchronized (lock) {
+            File resourceLocation = new File(location, name);
+            if (resourceLocation.exists())
+                throw new IOException("Resource already exists - " + name);
+            resourceLocation.mkdir();
+            if (!resourceLocation.exists())
+                throw new IOException("Resource could not be created - " + name);
+            FileUtils.copyFile(resource, new File(resourceLocation, resource.getName()));
+        }
     }
 
     @Override
     public void remove(String name) throws IOException {
-        FileUtils.forceDelete(new File(location, name));
+        synchronized (lock) {
+            FileUtils.forceDelete(new File(location, name));
+        }
     }
 
     @Override
